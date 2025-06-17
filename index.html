@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Spotify Link Gen</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      overflow: hidden;
+      position: relative;
+      color: #fff;
+    }
+
+    .background-logo {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 400px;
+      opacity: 0.2;
+      filter: blur(2px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .snow {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .snowflake {
+      position: absolute;
+      top: -10px;
+      width: 10px;
+      height: 10px;
+      background: white;
+      border-radius: 50%;
+      opacity: 0.8;
+      animation: fall linear infinite;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(100vh);
+      }
+    }
+
+    .box {
+      background: rgba(29, 185, 84, 0.9);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 420px;
+      text-align: center;
+      color: black;
+      position: relative;
+      z-index: 1;
+      margin: 60px auto;
+    }
+
+    .box h2 {
+      margin-bottom: 10px;
+      font-size: 28px;
+      color: black;
+    }
+
+    .box p {
+      font-size: 14px;
+    }
+
+    .input-group {
+      display: flex;
+      align-items: center;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      margin: 15px 0;
+      padding: 10px;
+      background-color: #fff;
+    }
+
+    .input-group img {
+      width: 20px;
+      margin-right: 10px;
+    }
+
+    .input-group input {
+      border: none;
+      outline: none;
+      flex: 1;
+      font-size: 16px;
+      background: transparent;
+      color: black;
+    }
+
+    .input-group button {
+      background: #1db954;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+
+    .action-button {
+      background-color: #191414;
+      border: none;
+      padding: 15px;
+      width: 100%;
+      color: white;
+      border-radius: 12px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .action-button:hover {
+      background-color: #0e0e0e;
+    }
+
+    .erro {
+      color: red;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    #gerador {
+      display: none;
+      margin-top: 20px;
+    }
+
+    #links {
+      background: #e6e6e6;
+      padding: 15px;
+      margin-top: 10px;
+      border-radius: 10px;
+      max-height: 300px;
+      overflow: auto;
+      text-align: left;
+      font-size: 13px;
+      color: black;
+    }
+
+    #links a {
+      color: #007bff;
+      text-decoration: underline;
+      display: block;
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fundo com logo Spotify -->
+  <img src="https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg" class="background-logo" alt="Spotify logo">
+
+  <!-- Neve -->
+  <div class="snow" id="snow"></div>
+
+  <!-- Login -->
+  <div class="box" id="login">
+    <h2>Spotify Link Gen</h2>
+    <p>Você precisa realizar o login para continuar.</p>
+    <div class="input-group">
+      <img src="https://cdn-icons-png.flaticon.com/512/3064/3064197.png" alt="cadeado">
+      <input type="password" id="senha" placeholder="Senha">
+      <button onclick="toggleSenha()">Mostrar</button>
+    </div>
+    <button class="action-button" onclick="verificarSenha()">Fazer login</button>
+    <div class="erro" id="erro"></div>
+  </div>
+
+  <!-- Gerador -->
+  <div class="box" id="gerador">
+    <h2>Spotify Link Gen</h2>
+    <p>Generator Created by Self</p>
+    <input type="number" id="quantidade" placeholder="Quantidade (máx: 1300)" max="1300" style="padding:10px; width: 80%; border-radius: 10px; border: 1px solid #ccc;">
+    <br>
+    <button class="action-button" onclick="gerarLinks()">Gerar Links</button>
+    <button class="action-button" onclick="resetar()">Limpar e gerar novo</button>
+    <button class="action-button" onclick="copiarLinks()">Copiar Todos</button>
+    <button class="action-button" onclick="alert('Essa função ainda está em desenvolvimento')">Adquirir Plano Premium</button>
+    <div id="links"></div>
+  </div>
+
+  <script>
+    const hashCorreta = "0f233bf081dad840763ef0478d1256c7f27af1f97c0962b956725b5c6e3e395a"; // SHA-256 de generator1092
+
+    async function verificarSenha() {
+      const senha = document.getElementById("senha").value;
+      const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(senha));
+      const hashHex = Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+      if (hashHex === hashCorreta) {
+        document.getElementById("login").style.display = "none";
+        document.getElementById("gerador").style.display = "block";
+      } else {
+        document.getElementById("erro").innerText = "Senha incorreta!";
+      }
+    }
+
+    function toggleSenha() {
+      const input = document.getElementById("senha");
+      input.type = input.type === "password" ? "text" : "password";
+    }
+
+    function gerarLinks() {
+      const quantidade = parseInt(document.getElementById("quantidade").value);
+      const base = "https://www.spotify.com/br-pt/ppt/microsoft/?code=";
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      const container = document.getElementById("links");
+      container.innerHTML = "";
+
+      if (isNaN(quantidade) || quantidade < 1 || quantidade > 1300) {
+        alert("Insira uma quantidade válida até 1300.");
+        return;
+      }
+
+      for (let i = 0; i < quantidade; i++) {
+        const len = Math.floor(Math.random() * 6) + 6;
+        let codigo = "";
+        for (let j = 0; j < len; j++) {
+          codigo += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        const link = document.createElement("a");
+        link.href = base + codigo;
+        link.target = "_blank";
+        link.innerText = base + codigo;
+        container.appendChild(link);
+      }
+    }
+
+    function copiarLinks() {
+      const container = document.getElementById("links");
+      const links = container.querySelectorAll("a");
+      let texto = "";
+      links.forEach(link => {
+        texto += link.href + "\n";
+      });
+
+      if (texto) {
+        navigator.clipboard.writeText(texto).then(() => {
+          alert("Links copiados com sucesso!");
+        }).catch(() => {
+          alert("Erro ao copiar links.");
+        });
+      }
+    }
+
+    function resetar() {
+      document.getElementById("links").innerHTML = "";
+      document.getElementById("quantidade").value = "";
+    }
+
+    function gerarNeve() {
+      const snow = document.getElementById("snow");
+      for (let i = 0; i < 70; i++) {
+        const floco = document.createElement("div");
+        floco.classList.add("snowflake");
+        floco.style.left = Math.random() * 100 + "vw";
+        floco.style.animationDuration = 2 + Math.random() * 5 + "s";
+        floco.style.opacity = Math.random();
+        floco.style.fontSize = Math.random() * 10 + 10 + "px";
+        snow.appendChild(floco);
+      }
+    }
+
+    gerarNeve();
+  </script>
+
+</body>
+</html>
